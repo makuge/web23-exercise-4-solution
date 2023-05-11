@@ -30,6 +30,7 @@ Our starting point for exercise 4 is a solution of exercise 3.
 
 On the server-side, we still have our `movie-model.js`, this time it does not contain any movies. In `server.js` you will find the server startup code defining the endpoint we have so far
 * `GET /movies` to get either all or genre-specific movides, and `GET /movies/:imdbID` to get a specific movie
+* `GET /movies/:imdbID` to get a specific movie to be edited in our form
 * `PUT /movies/:imdbID` to update a movie and
 * `GET /genres` to get all genres of the collection sorted alphabetically.
 
@@ -46,11 +47,11 @@ In `builders.js` all element builders reside, which are used in `index.js` and `
 
 Here's a first overview of the three tasks, details follow below:
 
-1. Add the **search** capability. In a first step, we will add a new server-side endpoint, which in turn will use the `omdbapi.com` to search movies and return it to our client. On the client side, we add the movies found on `omdbapi.com` to the DOM dynamically and provide the user with the possibility to select those movies.
+1. Add the **search** capability. In a first step, we will add a new server-side endpoint, `GET /search`, which in turn will use the `omdbapi.com` to search movies and return it to our client. We send the movies found on `omdbapi.com` back to the client (although we only include a limited set of properties) and add the search results to the DOM dynamically. Then, we provide the user with the possibility to select those movies.
 
-2. In a second step, we will add functionality to send the selected movies to yet another new endpoint, which will query `omdbapi.com` again to get the movie data for the selected movies. Then, we permanentely add the chosen movies to our model.
+2. In the task, we add functionality to send the movies selected by the user to another new endpoint, namely `POST /movies`, which will query `omdbapi.com` again to get the movie data for the selected movies. Then, we permanentely add the chosen movies to our model.
 
-3. The third task is again about movie collection management, namely about **deletion**. We add a functionality for removal of movie to our server and remove the corresponding article element once the deletion was successful. 
+3. The third task is about **deletion**. We add a functionality for the removal of individual movies to our server and remove the corresponding article element from the DOM once the deletion on the server-side was successful. 
 
 ### Checking your implementation
 As usual, to check whether your implementation is working as expected you **run** Cypress end-to-end tests. These tests are the exact same tests used to assess your implementation once you commit it to the GitHub repository, only this time there are ? of them.
@@ -68,9 +69,9 @@ As in exercise 2, there are subtasks for the three tasks. Here is the scheme we 
 + 2.1. Send ids of the selected movies to endpoint `POST /movies` : **0.5 points**
 + 2.2. Added movies are available in the `GET /movies` endpoint: **0.5 points**
 
-+ 3.1. 3.1. Click on the 'Delete' button calls the DELETE /movies/:imdbID endpoint: **0.33 points**
-+ 3.2. 3.2. Deletion of a movie using DELETE /movies/:imdbID successfully removes the movie from the server-side movie collection: **0.33 points**
-+ 3.3. 3.3. After successfully deleting a movie on the server-side, the movie is removed from the DOM: **0.34 points**
++ 3.1. A click on the 'Delete' button calls the DELETE /movies/:imdbID endpoint: **0.33 points**
++ 3.2. Removal of a movie using DELETE /movies/:imdbID successfully deletes the movie from the server-side movie collection: **0.33 points**
++ 3.3. After successfully deleting a movie on the server-side, the movie is removed from the DOM: **0.34 points**
 
 As always, use the configured test specification file `cypress/e2e/assessment.cy.js` to run the tests.
 

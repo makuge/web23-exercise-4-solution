@@ -1,43 +1,4 @@
-import {
-  StyleChecker,
-  ValueChecker,
-  ConstantChecker,
-  GridAreaChecker,
-} from "./checkers.mjs";
-import {
-  checkMovie,
-  checkMovieArticle,
-  toChildTagNames,
-} from "./movieChecks.mjs";
-
-import updatedMovies from "../../server/movie-model.js";
-
-const GENRES = [
-  "Action",
-  "Adventure",
-  "Animation",
-  "Biography",
-  "Comedy",
-  "Crime",
-  "Documentary",
-  "Drama",
-  "Family",
-  "Fantasy",
-  "Film Noir",
-  "History",
-  "Horror",
-  "Music",
-  "Musical",
-  "Mystery",
-  "Romance",
-  "Sci-Fi",
-  "Short",
-  "Sport",
-  "Superhero",
-  "Thriller",
-  "War",
-  "Western",
-];
+import { checkMovie, } from "./movieChecks.mjs";
 
 const QUERY = "Lord of the Rings: The Battle for Middle-Earth";
 
@@ -267,7 +228,7 @@ const movieIds = [
     });
   });
 
-  it("3.1. Click on the 'Delete' button calls the DELETE /movies/:imdbID endpoint", () => {
+  it("3.1. A click on the 'Delete' button calls the DELETE /movies/:imdbID endpoint", () => {
     cy.visit("/").then(() => {
       cy.get("main article").then(movieElements => {
         expect(movieElements.length, `Expected at least one movie before testing the deletion`).to.be.at.least(1)
@@ -286,7 +247,7 @@ const movieIds = [
     });
   })
 
-  it("3.2. Deletion of a movie using DELETE /movies/:imdbID successfully removes the movie from the server-side movie collection", () => {
+  it("3.2. Removal of a movie using DELETE /movies/:imdbID successfully deletes the movie from the server-side movie collection", () => {
     cy.request("/movies").then(response => {
       const currentMoviesIds = response.body.map(movie => movie.imdbID);
 
