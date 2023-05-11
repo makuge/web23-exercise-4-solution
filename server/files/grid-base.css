@@ -24,14 +24,13 @@ ul {
   list-style-type: none;
 }
 
-footer > ul {
+/*footer > ul {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Task x.x */
-/*@media screen and (min-width: 768px) {
+@media screen and (min-width: 768px) {*/
   body {
     display: grid;
     grid-template-rows: 92px auto 64px;
@@ -69,7 +68,7 @@ footer > ul {
     column-gap: 16px;
     justify-content: center;
   }
-}*/
+/*}*/
 
 header {
   display: flex;
