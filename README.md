@@ -1,6 +1,6 @@
 # Web Technologies - Exercise 4
 
-The fourth and last assignment is about movie management. We are going to include functionality to search for movies using the `https://www.omdbapi.com/`, select some of the movies found and add them to our personal movie collection. We also will be adding a new button to each movie to remove it from our collection. Lastly, we are going to include a [media query](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Media_queries) to make our layout responsive. 
+The fourth and last assignment is about movie management. We are going to include functionality to search for movies using the `https://www.omdbapi.com/`, select some of the movies found and add them to our personal movie collection. We also will be adding a new button to each movie to remove it from our collection. 
 
 As usual, you find detailed information about each part in the **Tasks** section below.
 
