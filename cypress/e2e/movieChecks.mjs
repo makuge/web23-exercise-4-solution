@@ -49,17 +49,13 @@ export function checkMovie(movie) {
   expect(movie.imdbID, 'Movie property "imdbID" is expected to match the IMDB id format').to.match(ID_REGEX)
 
   expect(movie.Title).to.be.a("string");
-  expect(
-    movie.Released,
-    'Movie property "Released" is expected to be a ISO 8601 formatted date string'
-  ).to.match(DATE_REGEX);
+  expect(movie.Released, 'Movie property "Released" is expected to be a ISO 8601 formatted date string').to.match(DATE_REGEX);
 
-  expect(
-    movie.Runtime,
-    'Movie property "Runtime" is expected to be a number greater or equal to 1'
-  )
+  if (movie.Runtime) {
+    expect(movie.Runtime, 'Movie property "Runtime" is expected to be a number greater or equal to 0')
     .to.be.a("number")
-    .and.to.be.at.least(1);
+    .and.to.be.at.least(0);
+  }
 
   const stringArrayNames = ["Genres", "Directors", "Writers", "Actors"];
   stringArrayNames.forEach((name) => checkArray(movie[name], name, "string"));
@@ -76,7 +72,7 @@ export function checkMovie(movie) {
     'Movie property "Metascore" is expected to be a number greater than 0 and less or equal to 100'
   )
     .to.be.a("number")
-    .and.to.be.greaterThan(0)
+    .and.to.be.at.least(0)
     .and.to.be.at.most(100);
   expect(
     movie.imdbRating,

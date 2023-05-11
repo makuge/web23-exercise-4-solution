@@ -179,6 +179,6 @@ export class NoResultsBuilder extends ElementBuilder {
   constructor(query) {
     super("p")
     this.append(new ElementBuilder("b"))
-    this.text(`No results for your query '${query}' returned.`)
+    this.text(`No results for your query '${query}' found.`)
   }
 }

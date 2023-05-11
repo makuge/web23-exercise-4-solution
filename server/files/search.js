@@ -1,7 +1,7 @@
 import { ResultFormBuilder, NoResultsBuilder } from "./builders.js";
 
 function search() {
-  /* Task 1.1: Initialize the searchForm correctly */
+  /* Task 1.2: Initialize the searchForm correctly */
   const searchForm = document.getElementById("search");
 
   if (searchForm.reportValidity()) {
@@ -28,15 +28,16 @@ function search() {
       }
     };
 
-    /* Task 1.1: Finish the xhr configuration */
+    /* Task 1.2: Finish the xhr configuration and send the request */
     xhr.open("GET", "/search?query=" + searchForm.query.value);
     xhr.send();
   }
 }
 
+/* Task 2.1. Call the POST /addMovies endpoint and pass the 
+   array of imdbID to be added as payload */
 function addToCollection() {
-  /* Task X.X Call the POST /addMovies endpoint and pass the 
-     array of imdbID to be added as payload */
+  
   const checkedElements = document.querySelectorAll(
     'input[type="checkbox"]:checked'
   );

@@ -50,7 +50,7 @@ Here's a first overview of the three tasks, details follow below:
 
 2. In a second step, we will add functionality to send the selected movies to yet another new endpoint, which will query `omdbapi.com` again to get the movie data for the selected movies. Then, we permanentely add the chosen movies to our model.
 
-3. The third task is in part movie collection management and in part a styling task. First, we add a third new endpoint and a new button to our movies to be able to remove them from our movie collection. Then, we add a [breakpoint](https://www.w3schools.com/css/css_rwd_mediaqueries.asp) to configure the grid layout from exercise 3 for bigger screens. 
+3. The third task is again about movie collection management, namely about **deletion**. We add a functionality for removal of movie to our server and remove the corresponding article element once the deletion was successful. 
 
 ### Checking your implementation
 As usual, to check whether your implementation is working as expected you **run** Cypress end-to-end tests. These tests are the exact same tests used to assess your implementation once you commit it to the GitHub repository, only this time there are ? of them.
@@ -61,97 +61,74 @@ To start the tests, run
 
 As in exercise 2, there are subtasks for the three tasks. Here is the scheme we will use to award the points:
 
-+ 1.1. Query sent to the `\search` endpoint: **0.25 points**
-+ 1.2. `\search` return the correct data from `omdbapi.com`: **0.5 points**
++ 1.1. `GET /search` returns the correct data from `omdbapi.com`: **0.5 points**
++ 1.2. User query is sent to the `GET /search` endpoint: **0.25 points**
 + 1.3. Search results are rendered correctly: **0.25 points**
 
-+ 2.1. Send ids of the selected movies to endpoint `POST \movies` : **0.5 points**
-+ 2.2. Added movies are available in the `GET \movies` endpoint: **0.5 points**
++ 2.1. Send ids of the selected movies to endpoint `POST /movies` : **0.5 points**
++ 2.2. Added movies are available in the `GET /movies` endpoint: **0.5 points**
 
-+ 3.1. Implement the removal of movies from our collection: **0.5 points**
-+ 3.2. Grid layout is used for screens larger than 768px: **0.5 points**
++ 3.1. 3.1. Click on the 'Delete' button calls the DELETE /movies/:imdbID endpoint: **0.33 points**
++ 3.2. 3.2. Deletion of a movie using DELETE /movies/:imdbID successfully removes the movie from the server-side movie collection: **0.33 points**
++ 3.3. 3.3. After successfully deleting a movie on the server-side, the movie is removed from the DOM: **0.34 points**
 
 As always, use the configured test specification file `cypress/e2e/assessment.cy.js` to run the tests.
 
 ### Task 1: Query `ombdbapi.com` and display the movies found to the user
 
-**1.1 In `search.js`.** Almost all the search functionality is already there. You just need to correctly initialize the `searchForm` and complete the configuration of the XMLHttpRequest `xhr` to target the `/search` endpoint passing the **query** entered by the user to the endpoint using a *query parameter* named *query*
+**1.1 In `server.js`.** Add and implement the `GET /search` endpoint.
 
-**1.2 In `server.js`.** Add and implement the `GET /search` endpoint.
+Before you start to implement the endpoint make sure that you sanity-check the incoming request. If the request does not include a `query` parameter, reply with a status code **400** (Bad request).
 
-The new endpoint internally queries `omdbapi.com`. You will have to register and obtain an API key. Using that key, you can then query the API as described on their (main page)[https://www.omdbapi.com/]. 
+The new endpoint internally queries `omdbapi.com`. You will have to register and obtain an API key. Using that key, you can then query the API as described on their [main page](https://www.omdbapi.com/). Use either the build in [`http` module](https://nodejs.org/api/http.html) or another HTTP client to your liking.
 
 **Use the `s` parameter of the API to search for movie titles.**
 
 The endpoint returns an array with the results obtained from `omdbapi.com`, but only includes the properties `Title`, `imdbID`, and `Year`. Make sure to convert the the `Year` property to a number before passing it on.
 
-**1.3. In `search.js`.** Back in `search.js`, build a `form` that includes the following structure for every result (using *The Lord of the Rings: The Two Towers* as example movie):
+**1.2 In `search.js`.** Almost all the search functionality is already there. But you need to correctly initialize the `searchForm` variable with the `form` HTML element that contains the search input element. Then, complete the configuration of the XMLHttpRequest `xhr` to target the `/search` endpoint passing the **query** entered by the user to the endpoint using a *query parameter* named *query*.
 
-```html
-<article>
-    <input type="checkbox" value="tt0167261" id="tt0167261">
-    <label for="tt0167261">The Lord of the Rings: The Two Towers (2002)</label>
-</article>
-```
+**1.3. In `search.js`.** Again, in `search.js`, we now add the results we receive from the endpoint to the DOM.
 
-In addition to the result, add a button with the text `Add selected to collection` to the bottom of the form. We are going to configure its click event listener in 2.1.
+You will find a `sectionElement` already initialized in `search.js`. Dynamically add content to this element.
 
-### Task 2: Applying Grid Template Areas to lay out our overview page, make the genre buttons work
+Two cases need to be considered:
 
-**2.1. In `search.js`**. Add a click event listener to the button you added in 1.3 and send the movie ids that were selected by the user to the `POST /movies`
+1. No movies for the user query is found. In this case add a `p` paragraph element with a corresponding message. E.g. for the query **'asdf'**:
+    ```html
+    <p>No results for your query 'asdf' found.</p>
+    ```
+2. Results were returned. In this case, build and add a `form` element that includes the following structure for every movie found (using *The Lord of the Rings: The Two Towers* as example movie):
 
-1. We specify an element to be a Grid container and specify the areas the container will use. In project, the `body` element is the Grid container.
+    ```html
+    <article>
+        <input type="checkbox" value="tt0167261" id="tt0167261">
+        <label for="tt0167261">The Lord of the Rings: The Two Towers (2002)</label>
+    </article>
+    ```
 
-    Specify the `display` property and the rows, columns and areas to correspond to the following layout:
+In addition to these result `article`s, add a button with the text `Add selected to collection` to the bottom of the form. We are going to configure its click event listener in 2.1.
 
-    ![Columns and rows](images/grid-columns-and-rows.svg "Columns and rows")
+### Task 2: Send the selected movies to the server and add them to the movie collection
 
-2. Now, assign the areas defined in the container in step 1 to the child elements of our container. These are `header`, `nav`, `main`, and `footer`.
+**2.1. In `search.js`**. To finish our search feature, add a click event handler to our `Add selected to collection` button. On button click, collect all selected `imdbID`s in an array and POST them to the `/movies` endpoint.
 
-    When you finished this task, the look of the page will have already changed:
+**2.2. In `server.js`.**. On the server-side, add the `POST /movies` endpoint add query `omdbapi.com` again to obtain the data for the selected movies. 
 
-    ![Laid out with grid](images/with-grid-layout.jpg "Laid out with grid")
+In the next step, convert the data that the API returns to the format that we use in our movie collection. This automates what you did manually in the first task of exercise 1. You will have to convert 
+* the `Released` to an ISO date string,
+* the `Runtime` to either `null` if not available or to a number representing the runtime of the movie in minutes,
+* the `Genre`, `Director`, and `Writer` properties to arrays of strings. In addition to that, their name changes to the pluralized form, e.g., `Genre` becomes `Genres`,
+* the `Actors` property to an array of strings,
+* the `MetaScore` to either `null` if not available or to a number representing the Metascore, and finally,
+* the `imdbRating` to a number.
 
-3. We want the footer to be visible always, for this to work we have to control how the `main` element behaves once its contents get to big to fit on the viewport. Set the `main` element's `overflow-y` property to `auto` to see the difference. 
+### Task 3: Add a DELETE endpoint on the server-side and issue the corrsponding request then when the *Delete*-button of a movie is clicked
 
-Most probably you now see two scrollbars at the right, one for the `main` element, one for the `body`. We will take care of that later.
+**3.1. In index.js.** When the user clicks the *Delete*-button, the `deleteMovie(imdbID)` function in `index.js` is called. Add an `XMLHttpRequest` to it, configure it to target the `DELETE /movies/:imdbID` endpoint and send it.
 
-**2.2. In `index.js` and `server.js`.**
-Review the implementation of `loadMovies(...)` in `index.js` and pass on the genre given by the button click handler to the movie request. 
-* On the client-side, you need set the parameter to the request. See [URLSearchParams:set()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/set). **Important: Use 'genre' as the name of your parameter!**
-* On the server-side, in the `GET /movies` endpoint, you use the query parameter sent by the client to filter the movies of the collection. Like the path parameters we used in exercise 2, the query parameters also are available on the request object of the endpoint hit, e.g., a query parameter named **genre** will be available through `req.query.genre`. 
+**3.2. In server.js.** On the server-side, add the `DELETE /movies/:imdbID` endpoint and remove the movie with the given path parameter from the movie colletion. Confirm the successful deletion by sending back a status code of 200.
 
-    Make sure that the endpoint returnes *all* movies when no query parameters is present and the genre specific movies when is is present.
+**3.3. In index.js.** When the server response arrives and carries a 200 status code, remove the `article` element corresponding to the deleted movie (you can find it easily, because it has an `id` that is equal to the `imdbID`) from the DOM.
 
-After this task, all the page content will be laid out vertically, like this:
-
-<img src="images/without-layout.jpg" alt="Page without layouts" width="256">
-
-### Task 3: Using Flexbox to lay out elements
-
-**3.1. In index.css.** Center the `h1` in the header.
-One of the use cases of the Flexbox is to center a single child element in its parent's box.
-
-Make the `header` a Flexbox container (`display` is `flex`) and specify the `justify-content` as well as the `align-items` to center the `h1` horizontally and vertically.
-
-**3.2. In index.css.** Now, make the `ul` element in `nav` a Flexbox container, use the `nav>ul` child combinator selector.
-
-Flexbox's default direction is `row`, set it to `column` for this container, in addition use a row gap of 4 to 8 pixels.
-
-**3.3. In index.css.** Next is the `main` container, which houses the movie `article` elements.
-
-We want it to be a Flexbox container as well, in this container we want the children to be wrapped, use `flex-wrap` to do so.
-
-Make the main element a flex container that wraps its children and
-   that has row direction. Add some background image that covers the whole area.
-   Put your background image in the files/images folder.
-
-**3.4. In index.css.** Last, but not least. The footer's `ul` element.
-
-As a selector, again use a child combinator, `footer>ul`. Make sure to center the footer's elements horizontally and add a `column-gap` of 16 to 32 pixels.
-
-Now it's finally time to get rid of the unnecessary scrollbar of the body. Set the body's `margin` to **0**, that should do it.
-
-![The final result](images/final.jpg "A screenshot of the final result")
-
-**Done, congratulations!** Don't forget to push and check on GitHub!
+**Well done, good job!** Don't forget to push and check on GitHub!

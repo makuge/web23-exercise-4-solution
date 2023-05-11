@@ -56,19 +56,10 @@ app.get("/genres", function (req, res) {
   res.send(genres);
 });
 
-/* Task x.x */
-app.delete("/movies/:imdbID", function(req, res) {
-  const id = req.params.imdbID;
-  const exists = id in movieModel;
-  delete movieModel[id]
-  res.sendStatus(exists ? 200 : 204)
-})
-
 const getMovieFromOMDB = imdbID => {
   const url = URLS.OMDB_API + "?apikey=" + API_KEYS.OMDB_API_KEY + "&i=" + imdbID;
   return new Promise((resolve, reject) => {
-    http
-      .get(url, (result) => {
+    http.get(url, (result) => {
         let data = "";
 
         result.on("data", (chunk) => {
@@ -90,15 +81,15 @@ const cleanMovieData = (movie) => {
   return {
     imdbID: movie.imdbID,
     Title: movie.Title,
-    Released: new Date(movie.Released).toISOString(),
-    Runtime: Number(movie.Runtime.split(" ")[0]),
+    Released: new Date(movie.Released).toISOString().substring(0,10),
+    Runtime: movie.Runtime === "N/A" ? null : Number(movie.Runtime.split(" ")[0]),
     Genres: convertProperty(movie.Genre),
     Directors: convertProperty(movie.Director),
     Writers: convertProperty(movie.Writer),
     Actors: convertProperty(movie.Actors),
     Plot: movie.Plot,
     Poster: movie.Poster,
-    Metascore: Number(movie.Metascore == "N/A" ? 1 : movie.Metascore),
+    Metascore: Number(movie.Metascore == "N/A" ? null : movie.Metascore),
     imdbRating: Number(movie.imdbRating),
   };
 };
@@ -107,7 +98,47 @@ function convertProperty(value) {
   return value ? value.split(",") : [];
 }
 
-/* Task x.x */
+/* Task 1.1. Add the GET /search endpoint: Query omdbapi.com and return
+   a list of the results you obtain. Only include the properties 
+   mentioned in the README when sending back the results to the client */
+app.get(`/search`, function (req, res) {
+
+  if (!req.query.query) {
+    res.sendStatus(400)
+  } else {
+    const url = `${URLS.OMDB_API}?apikey=${API_KEYS.OMDB_API_KEY}&s=${req.query.query}`;
+
+    http.get(url, (result) => {
+        let data = "";
+        result.on("data", (chunk) => (data += chunk));
+        result.on("end", () => {
+          const filteredData = [];
+
+          const results = JSON.parse(data);
+
+          if (results.Search) {
+            for (const result of results.Search) {
+              filteredData.push({
+                Title: result.Title,
+                imdbID: result.imdbID,
+                Year: Number(result.Year),
+              });
+            }
+          }
+
+          res.send(filteredData);
+        });
+      })
+      .on("error", (err) => {
+        res.sendStatus(500);
+      });
+  }
+});
+
+/* Task 2.2 Add a POST /movies endpoint that receives an array of imdbIDs that the
+   user selected to be added to the movie collection. Search them on omdbapi.com,
+   convert the data to the format we use since exercise 1 and add the data to the
+   movie collection. */
 app.post("/movies", async function (req, res) {
   for (const imdbID of req.body) {
     movie = await getMovieFromOMDB(imdbID);
@@ -117,36 +148,15 @@ app.post("/movies", async function (req, res) {
   res.send("Movie(s) added");
 });
 
-/* Task x.x */
-app.get(`/search`, function (req, res) {
-  const url = `${URLS.OMDB_API}?apikey=${API_KEYS.OMDB_API_KEY}&s=${req.query.query}`;
+/* Task 3.2. Add the DELETE /movies/:imdbID endpoint which removes the movie
+   with the given imdbID from the collection. */
+app.delete("/movies/:imdbID", function(req, res) {
+  const id = req.params.imdbID;
+  const exists = id in movieModel; 
+  delete movieModel[id]
+  res.sendStatus(exists ? 200 : 204)
+})
 
-  http
-    .get(url, (result) => {
-      let data = "";
-      result.on("data", (chunk) => (data += chunk));
-      result.on("end", () => {
-        const filteredData = [];
-
-        const results = JSON.parse(data);
-
-        if (results.Search) {
-          for (const result of results.Search) {
-            filteredData.push({
-              Title: result.Title,
-              imdbID: result.imdbID,
-              Year: Number(result.Year),
-            });
-          }
-        }
-
-        res.send(filteredData);
-      });
-    })
-    .on("error", (err) => {
-      res.sendStatus(500);
-    });
-});
 
 app.listen(3000);
 

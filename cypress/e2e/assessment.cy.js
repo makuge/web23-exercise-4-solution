@@ -2,11 +2,15 @@ import {
   StyleChecker,
   ValueChecker,
   ConstantChecker,
-  GridAreaChecker
+  GridAreaChecker,
 } from "./checkers.mjs";
-import { checkMovie, checkMovieArticle, toChildTagNames } from "./movieChecks.mjs";
+import {
+  checkMovie,
+  checkMovieArticle,
+  toChildTagNames,
+} from "./movieChecks.mjs";
 
-import movies from "../../server/movie-model.js";
+import updatedMovies from "../../server/movie-model.js";
 
 const GENRES = [
   "Action",
@@ -35,298 +39,290 @@ const GENRES = [
   "Western",
 ];
 
-describe("Testing Exercise 3", () => {
+const QUERY = "Lord of the Rings: The Battle for Middle-Earth";
 
-  /*it("0.1. movie-model.js exports the movies object containing at least 3 movies", () => {
-    expect(movies, `Expected movies to be an array, but is of type '${typeof movies}'`).to.be.an("object");
-    expect(Object.entries(movies).length).to.be.at.least(3);
-    for (const [imdbID, movie] of Object.entries(movies)) {
-      expect(imdbID, `Expected the movie id '${imdbID}' to be equal to the one inside the movie object, which is '${movie.imdbID}'`).to.be.eq(movie.imdbID);
-      checkMovie(movie);
-    }
+const LORD_OF_THE_RINGS = [
+  {
+    Title: "The Lord of the Rings: The Battle for Middle-Earth",
+    imdbID: "tt0412935",
+    Year: 2004,
+  },
+  {
+    Title: "The Lord of the Rings: The Battle for Middle-Earth II",
+    imdbID: "tt0760172",
+    Year: 2006,
+  },
+  {
+    Title:
+      "The Lord of the Rings: The Battle for Middle-earth II - The Rise of the Witch-king",
+    imdbID: "tt1058040",
+    Year: 2006,
+  },
+];
+
+describe("Testing Exercise 4", () => {
+  it("1.1. GET /search returns the correct data from omdbapi.com", () => {
+    cy.request({ method: "GET", url: "/search", failOnStatusCode: false }).as(
+      "searchResult"
+    );
+
+    cy.get("@searchResult").then((response) => {
+      expect(
+        response.status,
+        `Expected GET /search to return status code 400 when the query is missing`
+      ).to.be.eq(400);
+    });
+
+    cy.request(
+      "/search?query=" + QUERY
+    ).as("searchResult");
+    cy.get("@searchResult").then((response) => {
+      expect(
+        response.status,
+        `Expected GET /search to return status code 200 when given a query`
+      ).to.be.eq(200);
+      expect(
+        response.body,
+        `Expected body to contain 3 search results when queries with '${QUERY}'`
+      ).to.deep.eq(LORD_OF_THE_RINGS);
+
+      cy.request("/search?query=my little pony friendship magic").as(
+        "searchResult"
+      );
+      cy.get("@searchResult").then((response) => {
+        expect(
+          response.status,
+          `Expected GET /search to return status code 200 when given a query`
+        ).to.be.eq(200);
+        expect(
+          response.body,
+          `Expected body to contain 2 search results when queries with 'my little pony friendship magic'`
+        ).to.deep.eq([
+          {
+            Title: "My Little Pony: Friendship Is Magic",
+            imdbID: "tt1751105",
+            Year: null,
+          },
+          {
+            Title: "My Little Pony: Friendship Is Magic - A Decade of Pony",
+            imdbID: "tt13408956",
+            Year: 2019,
+          },
+        ]);
+      });
+    });
   });
 
-  it("0.2. GET endpoint /movies returns at least three correctly formatted movies", () => {
-    cy.request("/movies").as("movies");
-    cy.get("@movies").its("status").should("eq", 200);
-    cy.get("@movies").should((response) => {
-      expect(response.body, "Response expected to be an array").to.be.a("array");
-      expect(response.body.length,"Response array expected to contain at least 3 movies").to.be.at.least(3);
+  it("1.2. User query is sent to GET /search endpoint", () => {
+    cy.visit("/search.html").then(() => {
+      cy.intercept("GET", "/search?query=*", []).as("search-endpoint");
 
-      response.body.forEach((movie) => checkMovie(movie));
-    });
-  });*/
+      cy.get("#search input").type(QUERY);
+      cy.get("#search button").click();
 
-  /*it("1.1. Page has specified semantic structure", () => {
-    cy.visit('/').then(() => {
-      cy.get('body').should('exist').then(result => {
-        const bodyElement = result[0]
-        expect(bodyElement.children.length, "Expected 'body' to have exacly 4 child elements").to.eq(4)
-        expect(toChildTagNames(bodyElement), "Expected 'body' to contain four semantic elements").to.deep.eq(["FOOTER", "HEADER", "MAIN", "NAV"])
-        cy.get('body>header>h1').should('exist').should('not.be.empty')
-        cy.get('body>nav>h2').should('exist').should('have.text', 'Genres')
-        cy.get('body>nav>ul').should('exist')
-        cy.get('body>main').should('exist')
-        cy.get('body>footer>ul').should('exist')
-
-        const checkAnchor = function(element) {
-          expect(element.tagName, "Expected element to be an anchor element").to.be.eq("A")
-          expect(element.textContent, "Expected anchor element to have a text").to.not.be.empty
-          return element
-        }
-
-        cy.get('body>footer>ul>li').should('exist').then(listElements => {
-          expect(listElements.length, `Expected five list elements in page footer`).to.eq(5)
-          const elements = Array.from(listElements)
-          expect(elements[0].textContent, `Expected first list element in footer to contain the copyright symbol`).contains('\u00A9')
-          expect(elements[1].textContent, `Expected second list element to be non-empty`).to.not.be.empty
-          expect(elements[2].children.length, "Expected third list element to have exactly 1 child").to.be.eq(1)
-          const mailLink = checkAnchor(elements[2].children[0])
-          expect(mailLink, "Expected link to be a 'mailto:' URL").to.have.property('href').and.to.match(/^mailto:)
-          expect(elements[3].textContent, `Expected forth list element to be non-empty`).to.not.be.empty
-          expect(elements[4].children.length, "Expected third list element to have exactly 1 child").to.be.eq(1)
-          const uasLink = checkAnchor(elements[4].children[0])
-          expect(uasLink, "Expected link url to be a link to fh-campuswien.ac.at").to.have.property('href').and.to.eq('https://www.fh-campuswien.ac.at/')
-          expect(uasLink, "Expected link url to open in a new browsing context").to.have.property('target').and.to.eq("_blank")
-        })
-      })
-    })
-  })*/
-
-  /*it("1.2. GET endpoint /genres", () => {
-
-    cy.request("/genres").as("genres");
-    cy.get("@genres").its("status").should("eq", 200);
-    cy.get("@genres").then(response => {
-
-      const genres = response.body
-      expect(genres, "Response expected to be an array").to.be.a("array");
-      expect(genres.length,"Response array expected to contain at least 1 genre").to.be.at.least(1);
-      for (const genre of genres) {
-        expect(genre, `Expected genre to be of type string, but '${genre}' is a ${typeof(genre)}`).to.be.a('string')
-        expect(GENRES.indexOf(genre), `Expected genre '${genre}' to be in the supported list of 24 genres`).to.be.at.least(0)
-      }
-
-      const sortedGenres = [...genres].sort();
-
-      expect(genres, 'Expected genres returned from the endpoint to be sorted alphabetically').to.deep.eq(sortedGenres)
-  
-      cy.request("/movies").as("movies");
-      cy.get("@movies").its("status").should("eq", 200)
-      cy.get("@movies").then(response => {
-        expect(response.status).to.be.oneOf([200, 204]);
-        const genresInCollection = new Set(response.body.flatMap(m => m.Genres))
-        for (const genre of genresInCollection) {
-          expect(GENRES.indexOf(genre), `Expected genre '${genre}' found in the movie data to be in the supported list of 24 genres`).to.be.at.least(0)
-        }
+      cy.wait("@search-endpoint").then(({ request, response }) => {
+        expect(
+          request.query,
+          `Expected request to include the search query entered by the user as a query parameter named 'query'`
+        ).to.deep.eq({ query: QUERY });
       });
     });
-  });*/
+  });
 
-  /*it("1.3. Genres are added to the DOM correctly", () => {
+  function toChildTagNames(element) {
+    return Array.from(element.children).map(e => e.tagName)
+  }
 
-    cy.request("/genres").as("genres");
-    cy.get("@genres").its("status").should("eq", 200);
-    cy.get("@genres").then(response => {
-      const genres = response.body
+  it("1.3. Search results are rendered correctly", () => {
+    cy.visit("/search.html").then(() => {
+      cy.intercept("GET", "/search?query=*", LORD_OF_THE_RINGS).as("search-endpoint");
 
-      cy.visit('/').then(() => {
+      cy.get("#search input").type(QUERY);
+      cy.get("#search button").click();
 
-        cy.get("nav>ul>li>button").then(listElements => {
-          expect(listElements.length, `Expected 13 genre buttons, but found only ${listElements.length}`).to.be.eq(genres.length + 1)
-          const merged = ['All', ...genres].map((genre, index) => {
-            return { genre, element: listElements[index].textContent }
-          });
+      cy.wait("@search-endpoint").then(() => {
 
-          for (const element of merged) {
-            expect(element.element, `Expected list element to contain ${element.genre}`).contains(element.genre)
+        cy.get("#results article").then(resultElements => {
+          expect(resultElements.length, `Expected ${LORD_OF_THE_RINGS.length} articles in the results section, one for each movie`)
+            .to.be.eq(LORD_OF_THE_RINGS.length)
+
+          for (let i = 0; i < resultElements.length; i++) {
+            const movie = LORD_OF_THE_RINGS[i]
+            const resultElement = resultElements[i]
+
+            expect(resultElement.children.length, "Result article must have exacly 2 child elements").to.eq(2)
+            expect(toChildTagNames(resultElement), "Result article child elements must be correct").to.deep.eq(['INPUT', 'LABEL'])
+
+            const inputElement = resultElement.children[0]
+            expect(inputElement.type, `Expected the input element to be a 'checkbox'`).to.be.eq("checkbox")
+            expect(inputElement.value, `Expected the input elements value to equal the movie's id '${movie.imdbID}'`)
+              .to.be.eq(movie.imdbID)
+            expect(inputElement.id, `Expected the input elements id to equal the movie's id '${movie.imdbID}'`)
+              .to.be.eq(movie.imdbID)
+              
+            const labelElement = resultElement.children[1]
+            expect(labelElement.getAttribute('for'), `Expected the label element to be associated with the input element`).to.be.eq(movie.imdbID)
+            expect(labelElement, `Expected the label element to contain the movie title '${movie.Title}'`)
+              .to.contain(movie.Title)
           }
         })
 
-        cy.request("/movies").as("movies");
-        cy.get("@movies").its("status").should("eq", 200);
-        cy.get("@movies").then(response => {
-          const movies = response.body
+        cy.get("#results button").then(elements => {
+          const buttonElement = elements[0]
 
-          cy.get("main>article").then(movieElements => {
-            expect(movieElements.length, `Expected all movies to be present in article elements in 'main' element`).to.be.eq(movies.length)
-            for (let i = 0; i< movieElements.length; i++) {
-              checkMovieArticle(movieElements[i], movies[i])
-            }
-          })
+          expect(buttonElement.tagName, "Expected results form to contain a button element").to.be.eq("BUTTON")
+          expect(buttonElement.textContent, "Expected button to have text 'Add selected to collection'").to.be.eq("Add selected to collection")
+        })
+      });
+
+      cy.intercept("GET", "/search?query=*", []).as("search-endpoint");
+
+      cy.get("#search button").click();
+
+      cy.wait("@search-endpoint").then(() => {
+
+        cy.get("#results").then(elements => {
+          const sectionElement = elements[0]
+
+          expect(sectionElement.children.length, "Result section must have exacly 1 child elements").to.eq(1)
+          expect(toChildTagNames(sectionElement), "Result article child elements must be correct").to.deep.eq(['P'])
+          expect(sectionElement.children[0], `Expected no results found message in the paragraph`).to.contain(`No results for your query '${QUERY}' found.`)
         })
 
-        
+      });
+  })
+})
+
+it("2.1. Send ids of the selected movies to endpoint POST /movies", () => {
+  cy.visit("/search.html").then(() => {
+    cy.intercept("GET", "/search?query=*", LORD_OF_THE_RINGS).as("search-endpoint");
+
+    cy.get("#search input").type(QUERY);
+    cy.get("#search button").click();
+
+    cy.wait("@search-endpoint").then(() => {
+
+      cy.get("#results article input").then(inputElements => {
+
+        inputElements[0].click()
+        inputElements[2].click();
+
+        cy.intercept("POST", "/movies", {}).as("post-movies");
+
+        cy.get("#results button").click()
+
+        cy.wait("@post-movies").then(({request}) => {
+
+          expect(request.body, `Expected body of POST request to contain an array with the imdbIDs of the selected movies`)
+            .to.deep.eq([LORD_OF_THE_RINGS[0].imdbID, LORD_OF_THE_RINGS[2].imdbID])
+        })
+      });
+    })
+  })
+})
+
+const movieIds = [
+  "tt0469494", "tt0304415", "tt0057012", "tt0145487", "tt0427229", "tt0108052", "tt0089881", "tt0088727", 
+  "tt0133093", "tt0012349", "tt0113986", "tt0290002", "tt0084814", "tt0318462", "tt2042568", "tt0407362", 
+  "tt0059578", "tt0055205", "tt0364569", "tt0382330", "tt0049314", "tt0433383", "tt0120685", "tt0339291", 
+  "tt1853728", "tt1320082", "tt0025316", "tt0094889", "tt0449088", "tt0120735", "tt0079470", "tt0083987", 
+  "tt0089457", "tt0367882", "tt0119217", "tt0369436", "tt0087182", "tt0436889", "tt0091605", "tt0120601"];
+
+  it("2.2. Added movies are available in the GET /movies endpoint", () => {
+    cy.request("/movies").then((response) => {
+      expect(response.body, "Response expected to be an array").to.be.a(
+        "array"
+      );
+
+      const collectionIds = response.body.map((movie) => movie.imdbID);
+
+      let idsToPost = movieIds
+        .filter((imdbId) => !collectionIds.includes(imdbId))
+        .slice(0, 3);
+
+      expect(idsToPost.length, `No imdbIds left in test. All movie ids known to the test have been added to the movie collection. Restart the server to start anew`).to.be.at.least(1);
+
+      cy.request("POST", "/movies", idsToPost).as("postMovieResponse");
+      cy.get("@postMovieResponse").then((response) => {
+        expect(
+          response.status,
+          `Expected response to have status code 200`
+        ).to.be.eq(200);
+
+        cy.request("/movies").then((response) => {
+          const collectionIdsAfterPost = response.body.map(movie => movie.imdbID);
+          const expectedMovieCount = collectionIds.length + idsToPost.length;
+          expect(
+            collectionIdsAfterPost.length,
+            `Expected movie collection to have grown from ${collectionIds.length} to ${expectedMovieCount} movies`
+          ).to.be.eq(expectedMovieCount);
+
+          const newMovies = response.body.filter(movie => idsToPost.includes(movie.imdbID))
+
+          for (const movie of newMovies) {
+            checkMovie(movie);
+          }
+        });
       });
     });
-  });*/
+  });
 
-  /*it("2.1. 'body', 'header', 'nav', 'main' and 'footer' are styled with grid template areas", () => {
-
+  it("3.1. Click on the 'Delete' button calls the DELETE /movies/:imdbID endpoint", () => {
     cy.visit("/").then(() => {
-      const document = cy.state("document")
-      expect(document.styleSheets.length, "Expect document to contain one style sheet").to.eq(1)
+      cy.get("main article").then(movieElements => {
+        expect(movieElements.length, `Expected at least one movie before testing the deletion`).to.be.at.least(1)
 
-      const sheet = document.styleSheets[0]
+        const imdbId = movieElements[0].id;
+        
+        cy.intercept("DELETE", "/movies/*", {}).as("delete-movies");
+        
+        cy.get(`article#${imdbId} button:nth-of-type(2)`).click()
 
-      new StyleChecker("body", sheet)
-        .eq("display", "grid")
-        .compound('grid-template-rows', new ValueChecker(64, 128), new ConstantChecker("auto"), new ValueChecker(64, 128))
-        .compound('grid-template-columns', new ValueChecker(192, 256), new ConstantChecker("auto"))
-        .single('grid-template-areas', new GridAreaChecker(2, 3, [["h", "h"], ["n", "m"], ["f", "f"]]))
+        cy.wait("@delete-movies").then(({request}) => {
+          const {pathname} = new URL(request.url)
+          expect(pathname, `Expected DELETE request to target endpoint '/movies/${imdbId}'`).to.be.eq(`/movies/${imdbId}`)
+        })
+      })
+    });
+  })
 
-      new StyleChecker("header", sheet).eq("grid-area", "h / h / h / h")
-      new StyleChecker("nav", sheet).eq("grid-area", "n / n / n / n")
-      new StyleChecker("main", sheet).eq("grid-area", "m / m / m / m").eq("overflow-y", "auto")
-      new StyleChecker("footer", sheet).eq("grid-area", "f / f / f / f")
-    })
+  it("3.2. Deletion of a movie using DELETE /movies/:imdbID successfully removes the movie from the server-side movie collection", () => {
+    cy.request("/movies").then(response => {
+      const currentMoviesIds = response.body.map(movie => movie.imdbID);
 
-  })*/
+      expect(currentMoviesIds.length, `Expected at least one movie to be present in the movie collection`).to.be.at.least(1)
 
-  /*it("2.2. Genre buttons trigger loading and rendering of genre specific movies", () => {
-    cy.request("/movies").as("movies");
-    cy.get("@movies").its("status").should("eq", 200);
-    cy.get("@movies").then(response => {
-      const movies = response.body
-      const genres = [...new Set(movies.flatMap(m => m.Genres))].sort()
-      cy.visit("/").then(() => {
+      const deletedID = currentMoviesIds[0];
       
-        for (let i = 0; i < genres.length; i++) {
-          const genreMovies = movies.filter(m => m.Genres.indexOf(genres[i]) >= 0)
+      cy.request("DELETE", "/movies/" + deletedID).then(response => {
+        expect(response.status, `Expected status of DELETE response to be 200`).to.be.eq(200)
 
-          cy.get(`nav>ul>li:nth-of-type(${i+2})>button`).click().then(() => {
+        cy.request("/movies").then(response => {
+          const moviesIdsAfterDeletion = response.body.map(movie => movie.imdbID);
 
-              cy.get("main>article").then(movieElements => {
-                expect(movieElements.length, `Expected all genre specific movies to be present in article elements in 'main' element`)
-                  .to.be.eq(genreMovies.length)
-              })
-            })
-          }
+          expect(moviesIdsAfterDeletion.length, `Expected movie count to be ${currentMoviesIds.length - 1} after deletion`).to.be.eq(currentMoviesIds.length - 1)
+          expect(moviesIdsAfterDeletion.includes(deletedID), `Expected movie id of deleted movie ${deletedID} to no longer be present in movies returned from GET /movies endpoint`).to.be.eq(false)
         })
       })
     })
+  })
 
-    class Point {
-      constructor(x, y) {
-        this.x = x;
-        this.y = y;
-      }
+  it("3.3. After successfully deleting a movie on the server-side, the movie is removed from the DOM", () => {
+    cy.visit("/").then(() => {
+      cy.get("main article").then(movieElements => {
+        expect(movieElements.length, `Expected at least one movie before testing the deletion`).to.be.at.least(1)
 
-      distance(p) {
-        const deltaX = this.x - p.x
-        const deltaY = this.y - p.y
-        return Math.trunc(Math.sqrt(deltaX * deltaX + deltaY * deltaY))
-      }
+        const imdbId = movieElements[0].id;
+        
+        cy.get(`article#${imdbId} button:nth-of-type(2)`).click()
 
-      near(p, eps) {
-        return this.distance(p) < eps
-      }
-    }
+        cy.get("main article").then(movieElementsAfterDeletion => {
+          expect(movieElementsAfterDeletion.length, `Expected article movie element count to be ${movieElements.length - 1} after deletion`).to.be.eq(movieElements.length - 1)
 
-    class Box {
-      constructor(element) {
-        this.box = element.getBoundingClientRect()
-      }
-
-      width() {
-        return Math.trunc(this.box.width);
-      }
-
-      centerX() {
-        return Math.trunc(this.box.x + this.box.width / 2);
-      }
-
-      centerY() {
-        return Math.trunc(this.box.y + this.box.height / 2)
-      }
-
-      center() {
-        return new Point(this.centerX(), this.centerY())
-      }
-    }*/
-
-    /*it("3.1. Center the 'h1' element inside of the 'header' element", () => {
-
-      cy.visit("/").then(() => {
-        cy.get("header").then(headerElement => {
-          const headerBox = new Box(headerElement[0]);
-          const h1Box = new Box(headerElement.find('h1')[0])
-
-          expect(h1Box.width() < headerBox.width(), `Expected 'h1' box width (${h1Box.width()}) to be smaller that that of the 'header' (${headerBox.width()})`).to.be.eq(true)
-          const distance = h1Box.center().distance(headerBox.center())
-          expect(distance < 24, `Expected distance between 'h1' and 'header' centers to be smaller than 24, but it was ${distance}`).to.be.eq(true)
-
-          console.log(headerBox);
-        })
-      });
-    })*/
-
-    /*it("3.2. Navigation buttons are below each other, have some gap and the same width", () => {
-
-      cy.visit("/").then(() => {
-        cy.get("nav>ul>li").then(elements => {
- 
-          const listElement = elements[0].parentElement
-          expect(listElement.tagName, `Expected parent element of first list item in 'nav' to be the unordered list, but tag name was ${listElement.tagName}`).to.be.eq('UL')
-
-          const listBox = new Box(listElement)
-
-          for (let i = 0; i < listElement.children.length; i++) {
-            const buttonElement = listElement.children[i].children[0];
-            expect(buttonElement.tagName, `Expected list item's children tag to be a button, but tag name was ${buttonElement.tagName}`).to.be.eq('BUTTON')
-            const buttonBox = new Box(buttonElement)
-            const distanceX = Math.abs(buttonBox.centerX() - listBox.centerX())
-            expect(distanceX < 12, `Expected distance between x coordinates of center of 'button' and 'ul' to be smaller than 12, but was ${distanceX}`)
-
-            if (i > 0) {
-              const previousButtonElement = listElement.children[i-1].children[0]
-              const previousButtonBox = new Box(previousButtonElement)
-              const distanceY = buttonBox.centerY() - previousButtonBox.centerY()
-              expect(distanceY > 0, `Expected y distance between the button and its previous sibling to be > 0, but it was ${distanceY}`).to.eq(true)
-            }
-          }
-
-          const document = cy.state("document")
-          expect(document.styleSheets.length, "Expect document to contain one style sheet").to.eq(1)
-    
-          const sheet = document.styleSheets[0]
-    
-          new StyleChecker("nav > ul", sheet)
-            .eq("display", "flex")
-            .eq("flex-direction", "column")
-            .compound("row-gap", new ValueChecker(4, 8))
-  
+          const movieIdsAfterDeletion = Array.from(movieElementsAfterDeletion).map(e => e.id)
+          expect(movieIdsAfterDeletion.includes(imdbId), `Expect article movie element for deleted imdbID ${imdbId} to be no longer present in DOM`).to.be.eq(false)
         })
       })
-    })*/
-
-    /*it("3.3. Movie 'article' elements are laid out using Flexbox", () => {
-      cy.visit("/").then(() => {
-        const document = cy.state("document")
-        expect(document.styleSheets.length, "Expect document to contain one style sheet").to.eq(1)
-  
-        const sheet = document.styleSheets[0]
-  
-        new StyleChecker("main", sheet)
-          .eq("display", "flex")
-          .eq("flex-wrap", "wrap")
-      })
-    })*/
-
-    /*it("3.4. The footer is a Flexbox container, its childs are centered vertically", () => {
-      cy.visit("/").then(() => {
-        const document = cy.state("document")
-        expect(document.styleSheets.length, "Expect document to contain one style sheet").to.eq(1)
-  
-        const sheet = document.styleSheets[0]
-  
-        new StyleChecker("footer > ul", sheet)
-          .eq("display", "flex")
-          .compound("column-gap", new ValueChecker(16, 32))
-          .eq("justify-content", "center")
-
-        new StyleChecker("body", sheet).compound("margin", new ValueChecker(0, 0))
-      })
-    })*/
-
+    });
+  })
 });
