@@ -49,7 +49,7 @@ Here's a first overview of the three tasks, details follow below:
 
 1. Add the **search** capability. In a first step, we will add a new server-side endpoint, `GET /search`, which in turn will use the `omdbapi.com` to search movies and return it to our client. We send the movies found on `omdbapi.com` back to the client (although we only include a limited set of properties) and add the search results to the DOM dynamically. Then, we provide the user with the possibility to select those movies.
 
-2. In the task, we add functionality to send the movies selected by the user to another new endpoint, namely `POST /movies`, which will query `omdbapi.com` again to get the movie data for the selected movies. Then, we permanentely add the chosen movies to our model.
+2. **Include** chosen movies in the server-side collection. In the task, we add functionality to send the movies selected by the user to another new endpoint, namely `POST /movies`, which will query `omdbapi.com` again to get the movie data for the selected movies. Then, we permanentely add the chosen movies to our model.
 
 3. The third task is about **deletion**. We add a functionality for the removal of individual movies to our server and remove the corresponding article element from the DOM once the deletion on the server-side was successful. 
 
