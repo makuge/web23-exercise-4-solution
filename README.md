@@ -1,6 +1,6 @@
 # Web Technologies - Exercise 4
 
-The fourth and last is about movie management. We are going to include functionality to search for movies using the `https://www.omdbapi.com/`, select some of the movies found and add them to our personal movie collection. We also will be adding a new button to each movie to remove it from our collection. Lastly, we are going to include a [media query](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Media_queries) to make our layout responsive. 
+The fourth and last assignment is about movie management. We are going to include functionality to search for movies using the `https://www.omdbapi.com/`, select some of the movies found and add them to our personal movie collection. We also will be adding a new button to each movie to remove it from our collection. Lastly, we are going to include a [media query](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Media_queries) to make our layout responsive. 
 
 As usual, you find detailed information about each part in the **Tasks** section below.
 
@@ -46,11 +46,11 @@ In `builders.js` all element builders reside, which are used in `index.js` and `
 
 Here's a first overview of the three tasks, details follow below:
 
-1. Add the **search** capability. We will add a new server-side endpoint, which in turn will use the `omdbapi.com` to search movies and return it to our client. On the client side, we add the movies found to the DOM dynamically and provide the user with the possibility to select those movies.
+1. Add the **search** capability. In a first step, we will add a new server-side endpoint, which in turn will use the `omdbapi.com` to search movies and return it to our client. On the client side, we add the movies found on `omdbapi.com` to the DOM dynamically and provide the user with the possibility to select those movies.
 
-2. In this task, we will add functionality to send the selected movies to yet another new endpoint, which will again query `omdbapi.com` to get the movie data for the selected movies and add them to our model.
+2. In a second step, we will add functionality to send the selected movies to yet another new endpoint, which will query `omdbapi.com` again to get the movie data for the selected movies. Then, we permanentely add the chosen movies to our model.
 
-3. The third task is a styling task. The skeleton project uses standard flow layout to style our semantic html. In this task we add a (**breakpoint**)[https://www.w3schools.com/css/css_rwd_mediaqueries.asp] to add the grid layout from exercise 3 for bigger screens. 
+3. The third task is in part movie collection management and in part a styling task. First, we add a third new endpoint and a new button to our movies to be able to remove them from our movie collection. Then, we add a [breakpoint](https://www.w3schools.com/css/css_rwd_mediaqueries.asp) to configure the grid layout from exercise 3 for bigger screens. 
 
 ### Checking your implementation
 As usual, to check whether your implementation is working as expected you **run** Cypress end-to-end tests. These tests are the exact same tests used to assess your implementation once you commit it to the GitHub repository, only this time there are ? of them.
@@ -61,12 +61,12 @@ To start the tests, run
 
 As in exercise 2, there are subtasks for the three tasks. Here is the scheme we will use to award the points:
 
-+ 1.1. Query sent to the `\movies\search` endpoint: **0.25 points**
-+ 1.2. `\movies\search` return the correct data from `omdbapi.com`: **0.5 points**
++ 1.1. Query sent to the `\search` endpoint: **0.25 points**
++ 1.2. `\search` return the correct data from `omdbapi.com`: **0.5 points**
 + 1.3. Search results are rendered correctly: **0.25 points**
 
-+ 2.1. Send selected movies to endpoint `\add` : **0.5 points**
-+ 2.2. Added movies are available in the `\movies` endpoint: **0.5 points**
++ 2.1. Send ids of the selected movies to endpoint `POST \movies` : **0.5 points**
++ 2.2. Added movies are available in the `GET \movies` endpoint: **0.5 points**
 
 + 3.1. Implement the removal of movies from our collection: **0.5 points**
 + 3.2. Grid layout is used for screens larger than 768px: **0.5 points**
